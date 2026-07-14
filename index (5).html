@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Level Test - Open English</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #004B9E 0%, #1565C0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #004B9E 0%, #1565C0 100%);
+            color: white;
+            padding: 45px 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            font-weight: 800;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.25);
+            margin-top: 20px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF6B35 0%, #FF8B5C 100%);
+            transition: width 0.4s;
+        }
+
+        .content {
+            padding: 40px 30px;
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        .question-number {
+            font-size: 12px;
+            color: #FF6B35;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 28px;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .option-btn {
+            padding: 16px;
+            border: 2px solid #E8EEF7;
+            border-radius: 10px;
+            background: #F8FAFC;
+            font-size: 15px;
+            color: #2C3E50;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s;
+            text-align: left;
+        }
+
+        .option-btn:hover {
+            border-color: #004B9E;
+            background: #E3F2FD;
+            transform: translateX(6px);
+        }
+
+        .option-btn.selected {
+            border-color: #FF6B35;
+            background: rgba(255, 107, 53, 0.08);
+            color: #FF6B35;
+            font-weight: 700;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            padding: 13px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FF6B35 0%, #FF8B5C 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px);
+        }
+
+        .btn-primary:disabled {
+            background: #D0D8E8;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #E8EEF7;
+            color: #004B9E;
+            flex: 0.8;
+        }
+
+        .results-screen {
+            text-align: center;
+        }
+
+        .level-badge {
+            width: 140px;
+            height: 140px;
+            background: linear-gradient(135deg, #FF6B35 0%, #FF8B5C 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 56px;
+            font-weight: 900;
+            margin: 0 auto 28px;
+        }
+
+        .results-screen h2 {
+            font-size: 26px;
+            color: #004B9E;
+            margin-bottom: 12px;
+            font-weight: 800;
+        }
+
+        .results-screen p {
+            font-size: 15px;
+            color: #5A6C7D;
+            margin-bottom: 32px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            border-top: 4px solid #FF6B35;
+        }
+
+        .modal-content h3 {
+            font-size: 22px;
+            color: #004B9E;
+            margin-bottom: 8px;
+            font-weight: 800;
+        }
+
+        .modal-content p {
+            font-size: 14px;
+            color: #5A6C7D;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #004B9E;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 13px;
+            border: 2px solid #E8EEF7;
+            border-radius: 8px;
+            font-size: 15px;
+            background: #F8FAFC;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #FF6B35;
+            background: white;
+        }
+
+        .payload-preview {
+            background: #1a1a1a;
+            border: 1px solid #FF6B35;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 12px;
+            color: #00ff00;
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .modal-controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-controls button {
+            flex: 1;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #E8EEF7;
+            border-top-color: #FF6B35;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            color: #10b981;
+        }
+
+        .error-message {
+            display: none;
+            padding: 16px;
+            background: #FFF3E0;
+            border: 1px solid #FFB74D;
+            border-radius: 8px;
+            color: #E65100;
+            font-size: 14px;
+            margin-top: 16px;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .config-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B35 0%, #FF8B5C 100%);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+            z-index: 999;
+        }
+
+        .config-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .config-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .config-modal.active {
+            display: flex;
+        }
+
+        .config-content {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            border-top: 4px solid #FF6B35;
+        }
+
+        .config-content h2 {
+            font-size: 22px;
+            color: #004B9E;
+            margin-bottom: 24px;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>English Level Test</h1>
+            <p>Discover your English proficiency level</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="content active" id="questionScreen">
+            <div class="question-number" id="questionNum">Question 1 of 5</div>
+            <div class="question-text" id="questionText">Question text</div>
+            <div class="options-container" id="optionsContainer"></div>
+            <div class="controls">
+                <button class="btn-secondary" id="backBtn" style="display:none;">Back</button>
+                <button class="btn-primary" id="nextBtn" disabled>Next</button>
+            </div>
+        </div>
+
+        <div class="content results-screen" id="resultsScreen">
+            <div class="level-badge" id="levelBadge">A1</div>
+            <h2 id="levelTitle">Your English Level</h2>
+            <p id="levelDescription">Keep practicing!</p>
+            <button class="btn-primary" onclick="openModal()" style="width: 100%;">Save Results</button>
+        </div>
+
+        <div class="loading" id="loadingScreen">
+            <div class="spinner"></div>
+            <p>Sending your results...</p>
+        </div>
+
+        <div class="success-message" id="successScreen">
+            <div class="success-icon">✓</div>
+            <h2>Success!</h2>
+            <p>Your results have been saved.</p>
+        </div>
+    </div>
+
+    <button class="config-btn" onclick="openConfigModal()">⚙️</button>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h3>Complete Your Profile</h3>
+            <p>Provide your details:</p>
+            <form onsubmit="submitForm(event)">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="fullName" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="email" required placeholder="john@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Country *</label>
+                    <select id="country" required>
+                        <option value="">Select your country</option>
+                        <option value="52">🇲🇽 Mexico (+52)</option>
+                        <option value="55">🇧🇷 Brazil (+55)</option>
+                        <option value="54">🇦🇷 Argentina (+54)</option>
+                        <option value="1">🇺🇸 USA (+1)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Phone (10 digits) *</label>
+                    <input type="tel" id="phone" required placeholder="1234567890" maxlength="10" pattern="[0-9]{10}">
+                </div>
+                <div class="payload-preview" id="payloadPreview">{}</div>
+                <div class="error-message" id="errorMessage"></div>
+                <div class="modal-controls">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save & Continue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="config-modal" id="configModal">
+        <div class="config-content">
+            <h2>⚙️ Gupshup Config</h2>
+            <div class="form-group">
+                <label>Webhook URL</label>
+                <textarea id="callbackUrl" rows="4"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Auth Token</label>
+                <textarea id="authToken" rows="2"></textarea>
+            </div>
+            <div class="modal-controls">
+                <button class="btn-primary" onclick="saveConfig()">Save</button>
+                <button class="btn-secondary" onclick="closeConfigModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const QUESTIONS = [
+            { text: "What is your name?", options: ["My name is John.", "I am John.", "Both are correct.", "None of the above."], correct: 2 },
+            { text: "I _____ to the gym three times a week.", options: ["going", "go", "am going", "will go"], correct: 1 },
+            { text: "If I _____ your advice, I wouldn't have made that mistake.", options: ["had taken", "would have taken", "took", "have taken"], correct: 0 },
+            { text: "Despite _____ significant progress, the project still faces major challenges.", options: ["having made", "making", "to make", "made"], correct: 0 },
+            { text: "The politician's circumlocution _____ the voters' frustration.", options: ["exacerbated", "palliated", "mitigated", "ameliorated"], correct: 0 }
+        ];
+
+        const LEVELS = {
+            0: { level: "A1", title: "Beginner", description: "You're just starting your English journey." },
+            1: { level: "A2", title: "Elementary", description: "Good foundation! You can handle basic conversations." },
+            2: { level: "B1", title: "Intermediate", description: "You're making great progress!" },
+            3: { level: "B2", title: "Upper-Intermediate", description: "Strong skills! You can communicate fluently." },
+            4: { level: "C1", title: "Advanced", description: "Excellent! You have near-native proficiency." },
+            5: { level: "C1", title: "Advanced", description: "Excellent! You have near-native proficiency." }
+        };
+
+        let currentIndex = 0;
+        let score = 0;
+        let selectedAnswers = [null, null, null, null, null];
+        let userLevel = "A1";
+
+        function renderQuestion() {
+            const question = QUESTIONS[currentIndex];
+            document.getElementById('questionNum').textContent = `Question ${currentIndex + 1} of ${QUESTIONS.length}`;
+            document.getElementById('questionText').textContent = question.text;
+
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+            question.options.forEach((option, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'option-btn';
+                btn.textContent = option;
+                btn.onclick = () => selectOption(idx);
+                if (selectedAnswers[currentIndex] === idx) btn.classList.add('selected');
+                container.appendChild(btn);
+            });
+
+            const progress = (currentIndex / QUESTIONS.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('backBtn').style.display = currentIndex > 0 ? 'block' : 'none';
+            document.getElementById('nextBtn').textContent = currentIndex === QUESTIONS.length - 1 ? 'Finish' : 'Next';
+            document.getElementById('nextBtn').disabled = selectedAnswers[currentIndex] === null;
+        }
+
+        function selectOption(idx) {
+            selectedAnswers[currentIndex] = idx;
+            document.querySelectorAll('.option-btn').forEach((btn, i) => {
+                btn.classList.toggle('selected', i === idx);
+            });
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function nextQuestion() {
+            if (selectedAnswers[currentIndex] === QUESTIONS[currentIndex].correct) score++;
+            currentIndex++;
+            if (currentIndex < QUESTIONS.length) {
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderQuestion();
+            }
+        }
+
+        function showResults() {
+            const levelData = LEVELS[score];
+            userLevel = levelData.level;
+            document.getElementById('levelBadge').textContent = levelData.level;
+            document.getElementById('levelTitle').textContent = levelData.title;
+            document.getElementById('levelDescription').textContent = levelData.description;
+            document.getElementById('questionScreen').classList.remove('active');
+            document.getElementById('resultsScreen').classList.add('active');
+            document.getElementById('progressFill').style.width = '100%';
+        }
+
+        function openModal() {
+            const countryCode = document.getElementById('country').value || "52";
+            const payload = { event_name: "open_english_level_test", event_time: new Date().toISOString(), customer_id: countryCode + "1234567890", source: "level_test_web", user: { full_name: "User", email: "email@example.com", english_level: userLevel, score: score, campaign_id: "open_english_demo" }};
+            document.getElementById('payloadPreview').textContent = JSON.stringify(payload, null, 2);
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function submitForm(event) {
+            event.preventDefault();
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const countryCode = document.getElementById('country').value.trim();
+            const phoneDigits = document.getElementById('phone').value.trim();
+
+            if (phoneDigits.length !== 10) {
+                alert('Phone must be 10 digits');
+                return;
+            }
+
+            const customerId = countryCode + phoneDigits;
+            const payload = {
+                event_name: "open_english_level_test",
+                event_time: new Date().toISOString(),
+                customer_id: customerId,
+                source: "level_test_web",
+                user: { full_name: fullName, email: email, english_level: userLevel, score: score, campaign_id: "open_english_demo" }
+            };
+
+            document.getElementById('payloadPreview').textContent = JSON.stringify(payload, null, 2);
+            console.log('📤 SENDING:', payload);
+            setTimeout(() => sendToGupshup(payload), 500);
+        }
+
+        function sendToGupshup(payload) {
+            const config = getGupshupConfig();
+            const webhookUrl = config.url;
+            const authToken = config.token;
+
+            document.getElementById('modal').classList.remove('active');
+            document.getElementById('loadingScreen').classList.add('active');
+
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                console.log('Status:', response.status);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.text().then(text => {
+                    try { return JSON.parse(text); } catch(e) { return { rawText: text }; }
+                });
+            })
+            .then(data => {
+                console.log('✅ SUCCESS:', data);
+                document.getElementById('loadingScreen').classList.remove('active');
+                document.getElementById('successScreen').classList.add('active');
+                alert('✅ Data sent successfully!');
+            })
+            .catch(error => {
+                console.error('❌ ERROR:', error);
+                document.getElementById('loadingScreen').classList.remove('active');
+                document.getElementById('modal').classList.add('active');
+                alert('❌ Error: ' + error.message);
+            });
+        }
+
+        function getGupshupConfig() {
+            return {
+                url: localStorage.getItem('gupshup_webhook_url') || 'https://notifications.gupshup.io/notifications/callback/service/ipaas/project/541/integration/1f7086420d474c576d9586414',
+                token: localStorage.getItem('gupshup_auth_token') || '839448be-c1db-4077-ba78-0bb4455774b8'
+            };
+        }
+
+        function openConfigModal() {
+            const config = getGupshupConfig();
+            document.getElementById('callbackUrl').value = config.url;
+            document.getElementById('authToken').value = config.token;
+            document.getElementById('configModal').classList.add('active');
+        }
+
+        function closeConfigModal() {
+            document.getElementById('configModal').classList.remove('active');
+        }
+
+        function saveConfig() {
+            const url = document.getElementById('callbackUrl').value.trim();
+            const token = document.getElementById('authToken').value.trim();
+            if (!url || !token) { alert('Fill both fields'); return; }
+            localStorage.setItem('gupshup_webhook_url', url);
+            localStorage.setItem('gupshup_auth_token', token);
+            alert('✓ Config saved');
+            closeConfigModal();
+        }
+
+        document.getElementById('backBtn').onclick = prevQuestion;
+        document.getElementById('nextBtn').onclick = nextQuestion;
+        renderQuestion();
+    </script>
+</body>
+</html>
