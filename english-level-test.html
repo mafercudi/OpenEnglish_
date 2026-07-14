@@ -481,7 +481,15 @@
             </div>
             <div class="form-group">
                 <label>Auth Token</label>
-                <textarea id="authToken" rows="2"></textarea>
+                <input type="password" id="authToken" autocomplete="off">
+                <small style="display:block;margin-top:8px;color:#E65100;line-height:1.45;">Do not publish this token in a public HTML file. Use a backend proxy for production.</small>
+            </div>
+            <div class="form-group">
+                <label>Authentication</label>
+                <input value="Authorization: &lt;raw token&gt;" disabled>
+                <small style="display:block;margin-top:8px;color:#5A6C7D;line-height:1.45;">
+                    Gupshup Custom Integration expects the generated token directly, without the word Bearer.
+                </small>
             </div>
             <div class="modal-controls">
                 <button class="btn-primary" onclick="saveConfig()">Save</button>
@@ -546,7 +554,6 @@
         }
 
         function nextQuestion() {
-            if (selectedAnswers[currentIndex] === QUESTIONS[currentIndex].correct) score++;
             currentIndex++;
             if (currentIndex < QUESTIONS.length) {
                 renderQuestion();
@@ -563,6 +570,9 @@
         }
 
         function showResults() {
+            score = selectedAnswers.reduce((total, answer, index) => {
+                return total + (answer === QUESTIONS[index].correct ? 1 : 0);
+            }, 0);
             const levelData = LEVELS[score];
             userLevel = levelData.level;
             document.getElementById('levelBadge').textContent = levelData.level;
@@ -610,38 +620,65 @@
             setTimeout(() => sendToGupshup(payload), 500);
         }
 
-        function sendToGupshup(payload) {
+        async function sendToGupshup(payload) {
             const config = getGupshupConfig();
-            const webhookUrl = config.url;
-            const authToken = config.token;
+            const webhookUrl = config.url.trim();
+            // Normalize old saved values such as "Bearer abc..." to the raw CI token.
+            const authToken = config.token.trim().replace(/^Bearer\s+/i, '');
 
             document.getElementById('modal').classList.remove('active');
             document.getElementById('loadingScreen').classList.add('active');
 
-            fetch(webhookUrl, {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': authToken
+            };
+
+            console.log('📤 CALLBACK REQUEST', {
+                url: webhookUrl,
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-                body: JSON.stringify(payload)
-            })
-            .then(response => {
-                console.log('Status:', response.status);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return response.text().then(text => {
-                    try { return JSON.parse(text); } catch(e) { return { rawText: text }; }
+                headers: { ...headers, Authorization: '[HIDDEN]' },
+                payload
+            });
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers,
+                    body: JSON.stringify(payload)
                 });
-            })
-            .then(data => {
-                console.log('✅ SUCCESS:', data);
+
+                const responseText = await response.text().catch(() => '');
+                console.log('📥 CALLBACK RESPONSE', {
+                    status: response.status,
+                    ok: response.ok,
+                    body: responseText
+                });
+
+                if (!response.ok) {
+                    const detail = responseText ? ` — ${responseText.slice(0, 500)}` : '';
+                    throw new Error(`HTTP ${response.status}${detail}`);
+                }
+
                 document.getElementById('loadingScreen').classList.remove('active');
                 document.getElementById('successScreen').classList.add('active');
                 alert('✅ Data sent successfully!');
-            })
-            .catch(error => {
-                console.error('❌ ERROR:', error);
+            } catch (error) {
+                console.error('❌ CALLBACK ERROR:', error);
                 document.getElementById('loadingScreen').classList.remove('active');
                 document.getElementById('modal').classList.add('active');
-                alert('❌ Error: ' + error.message);
-            });
+
+                const isBrowserBlock = error instanceof TypeError || /failed to fetch|cors|networkerror/i.test(error.message);
+                const message = isBrowserBlock
+                    ? 'The browser blocked the request before it reached Gupshup (CORS/preflight). A static HTML page cannot bypass this; send the callback through a backend/serverless proxy.'
+                    : error.message;
+
+                const errorBox = document.getElementById('errorMessage');
+                errorBox.textContent = '❌ ' + message;
+                errorBox.classList.add('active');
+                alert('❌ ' + message);
+            }
         }
 
         function getGupshupConfig() {
@@ -655,7 +692,7 @@
             const config = getGupshupConfig();
             document.getElementById('callbackUrl').value = config.url;
             document.getElementById('authToken').value = config.token;
-            document.getElementById('configModal').classList.add('active');
+                        document.getElementById('configModal').classList.add('active');
         }
 
         function closeConfigModal() {
@@ -668,7 +705,8 @@
             if (!url || !token) { alert('Fill both fields'); return; }
             localStorage.setItem('gupshup_webhook_url', url);
             localStorage.setItem('gupshup_auth_token', token);
-            alert('✓ Config saved');
+            localStorage.removeItem('gupshup_auth_method');
+            alert('✓ Config saved\n\nThe Authorization header will use the raw token, without Bearer.');
             closeConfigModal();
         }
 
