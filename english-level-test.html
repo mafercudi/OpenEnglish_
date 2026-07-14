@@ -705,7 +705,7 @@
         function openModal() {
             // Generar preview del payload antes de abrir modal
             const countryCode = document.getElementById('country').value || "+52";
-            const customerId = countryCode + "1234567890"; // placeholder
+            const customerId = countryCode.replace('+', '') + "1234567890"; // sin el +
             
             const previewPayload = {
                 event_name: "open_english_level_test",
@@ -748,8 +748,8 @@
                 return;
             }
 
-            // Armar customer_id en E.164: countryCode + phoneDigits
-            const customerId = countryCode + phoneDigits;
+            // Armar customer_id: solo números, sin el +
+            const customerId = countryCode.replace('+', '') + phoneDigits;
 
             const payload = {
                 event_name: "open_english_level_test",
